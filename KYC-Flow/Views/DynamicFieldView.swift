@@ -28,19 +28,14 @@ struct DynamicFieldView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             case .date:
                 DatePicker(field.label, selection: Binding<Date>(
-                    get: {
-                        Date.kycDateFormatter.date(from: value) ?? Date()
-                    },
-                    set: {
-                        value = Date.kycDateFormatter.string(from: $0)
-                    }
+                    get: {Date.kycDateFormatter.date(from: value) ?? Date()},
+                    set: {value = Date.kycDateFormatter.string(from: $0)}
                 ), displayedComponents: .date)
                 .disabled(isReadOnly)
             }
             if let errorMsg = error {
                 Text(errorMsg).foregroundColor(.red).font(.caption)
             }
-        }
-        .padding(.vertical, 5)
+        }.padding(.vertical, 5)
     }
 }

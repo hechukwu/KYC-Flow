@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D8C010602E34F94700250150 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = D8C0105F2E34F94700250150 /* Yams */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		D8C010252E34EA6F00250150 /* KYC-Flow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "KYC-Flow.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D8C010602E34F94700250150 /* Yams in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = "KYC-Flow";
 			packageProductDependencies = (
+				D8C0105F2E34F94700250150 /* Yams */,
 			);
 			productName = "KYC-Flow";
 			productReference = D8C010252E34EA6F00250150 /* KYC-Flow.app */;
@@ -94,6 +100,9 @@
 			);
 			mainGroup = D8C0101C2E34EA6F00250150;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D8C0105E2E34F94700250150 /* XCRemoteSwiftPackageReference "Yams" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D8C010262E34EA6F00250150 /* Products */;
 			projectDirPath = "";
@@ -324,6 +333,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D8C0105E2E34F94700250150 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D8C0105F2E34F94700250150 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8C0105E2E34F94700250150 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D8C0101D2E34EA6F00250150 /* Project object */;
 }

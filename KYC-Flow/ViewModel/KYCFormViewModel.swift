@@ -5,64 +5,48 @@
 //  Created by Henry Chukwu on 26/07/2025.
 //
 
-
 import SwiftUI
 import Combine
+import Yams
 
 class KYCFormViewModel: ObservableObject {
     @Published var selectedCountryCode: String = "NL"
     @Published var formData: [String: String] = [:]
     @Published var validationErrors: [String: String] = [:]
     @Published var config: CountryKYCConfig?
-    @Published var isLoadingNLData = false
-
+    @Published var isLoadingUserProfile = false
+    
     private var cancellables = Set<AnyCancellable>()
-
+    
+    let supportedCountries = [("NL", "Netherlands"), ("DE", "Germany"), ("US", "United States")]
+    
     init() {
         loadConfig()
     }
-
+    
     func loadConfig() {
-        // Load config based on selectedCountryCode from local bundle YAML files
-        // For brevity, we'll emulate loading with JSON strings inline here
-        switch selectedCountryCode {
-        case "NL":
-            config = CountryKYCConfig(
-                country: "NL",
-                fields: [
-                    .init(id: "first_name", label: "First Name", type: .text, required: true, validation: nil),
-                    .init(id: "last_name", label: "Last Name", type: .text, required: true, validation: nil),
-                    .init(id: "bsn", label: "BSN", type: .text, required: true,
-                          validation: ValidationRule(regex: #"^\d{9}$"#, message: "BSN must be 9 digits", minLength: nil, maxLength: nil, minValue: nil, maxValue: nil)),
-                    .init(id: "birth_date", label: "Birth Date", type: .date, required: true, validation: nil)
-                ]
-            )
-            fetchNLUserProfile()
-        case "DE":
-            config = CountryKYCConfig(
-                country: "DE",
-                fields: [
-                    .init(id: "first_name", label: "Vorname", type: .text, required: true, validation: nil),
-                    .init(id: "last_name", label: "Nachname", type: .text, required: true, validation: nil),
-                    .init(id: "steuer_id", label: "Steueridentifikationsnummer", type: .text, required: true,
-                          validation: ValidationRule(regex: #"^\d{11}$"#, message: "Muss 11 Ziffern haben", minLength: nil, maxLength: nil, minValue: nil, maxValue: nil)),
-                    .init(id: "birth_date", label: "Geburtsdatum", type: .date, required: true, validation: nil)
-                ]
-            )
-            formData = [:]
-        default:
-            config = nil
-            formData = [:]
+        guard let url = Bundle.main.url(forResource: selectedCountryCode, withExtension: "yaml", subdirectory: nil),
+              let yamlString = try? String(contentsOf: url, encoding: .utf8),
+              let config = try? YAMLDecoder().decode(CountryKYCConfig.self, from: yamlString) else {
+            print("Config URL for \(selectedCountryCode) not found!")
+            self.config = nil
+            self.formData = [:]
+            return
         }
+        print("Loaded YAML file at: \(url)")
 
-        // Clear previous errors
-        validationErrors = [:]
+        self.config = config
+        self.validationErrors = [:]
+        self.formData = [:]
+        
+        if selectedCountryCode == "NL" && config.fields.contains(where: { $0.data_source == "nl-user-profile" }) {
+            fetchNLUserProfile()
+        }
     }
-
+    
     func fetchNLUserProfile() {
-        isLoadingNLData = true
-
-        // Simulated async fetch with delay (mock API)
+        isLoadingUserProfile = true
+        // Simulate async fetch with delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             let profile = [
                 "first_name": "Jan",
@@ -70,38 +54,33 @@ class KYCFormViewModel: ObservableObject {
                 "birth_date": "1985-07-20"
             ]
             self.formData.merge(profile) { _, new in new }
-            self.isLoadingNLData = false
+            self.isLoadingUserProfile = false
         }
     }
-
-    // Validate all fields according to config rules
+    
+    func isReadOnly(field: KYCField) -> Bool {
+        return field.readonly ?? false
+    }
+    
     func validate() -> Bool {
         var errors: [String: String] = [:]
-
-        guard let fields = config?.fields else {
-            return false
-        }
-
+        guard let fields = config?.fields else { return false }
         for field in fields {
             let value = formData[field.id, default: ""].trimmingCharacters(in: .whitespaces)
-
-            // Required check
+            // Required
             if field.required && value.isEmpty {
                 errors[field.id] = "\(field.label) is required"
                 continue
             }
-
             guard !value.isEmpty else { continue }
-
-            // Regex validation
-            if let regexPattern = field.validation?.regex,
-               let regex = try? NSRegularExpression(pattern: regexPattern),
+            // Regex
+            if let pattern = field.validation?.regex,
+               let regex = try? NSRegularExpression(pattern: pattern),
                regex.firstMatch(in: value, options: [], range: NSRange(location: 0, length: value.utf16.count)) == nil {
-                errors[field.id] = field.validation?.message ?? "\(field.label) format is invalid"
+                errors[field.id] = field.validation?.message ?? "\(field.label) is invalid"
                 continue
             }
-
-            // Min/Max length (for text)
+            // Text length
             if field.type == .text {
                 if let minL = field.validation?.minLength, value.count < minL {
                     errors[field.id] = "\(field.label) must be at least \(minL) characters"
@@ -112,8 +91,7 @@ class KYCFormViewModel: ObservableObject {
                     continue
                 }
             }
-
-            // Min/Max value (for numbers)
+            // Number range
             if field.type == .number, let doubleVal = Double(value) {
                 if let minV = field.validation?.minValue, doubleVal < minV {
                     errors[field.id] = "\(field.label) must be at least \(minV)"
@@ -125,16 +103,15 @@ class KYCFormViewModel: ObservableObject {
                 }
             }
         }
-
         validationErrors = errors
         return errors.isEmpty
     }
-
+    
     func submit() -> String? {
         guard validate() else { return nil }
-        // Return JSON string of formData for summary display
-        if let jsonData = try? JSONSerialization.data(withJSONObject: formData, options: .prettyPrinted) {
-            return String(data: jsonData, encoding: .utf8)
+        if let jsonData = try? JSONSerialization.data(withJSONObject: formData, options: .prettyPrinted),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            return jsonString
         }
         return nil
     }

@@ -10,24 +10,26 @@ import SwiftUI
 import Combine
 
 // MARK: - Models
-struct CountryKYCConfig: Decodable {
+struct CountryKYCConfig: Codable {
     let country: String
     let fields: [KYCField]
 }
 
-struct KYCField: Decodable, Identifiable {
+struct KYCField: Codable, Identifiable {
     let id: String
     let label: String
     let type: FieldType
     let required: Bool
+    let readonly: Bool?
+    let data_source: String?
     let validation: ValidationRule?
-
-    enum FieldType: String, Decodable {
+    
+    enum FieldType: String, Codable {
         case text, number, date
     }
 }
 
-struct ValidationRule: Decodable {
+struct ValidationRule: Codable {
     let regex: String?
     let message: String?
     let minLength: Int?
