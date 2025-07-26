@@ -4,9 +4,9 @@ This project demonstrates a dynamic, configuration-driven "Know Your Customer" (
 
 ## 🚀  Getting Started 
 #### 1. Requirements
-- Xcode 13+ (tested with Swift 5.5+)
+- Xcode 16+ (tested with Swift 5.5+)
 
-- iOS 15+ or Swift Playground (with SwiftUI support)
+- iOS 18+ or Swift Playground (with SwiftUI support)
 
 #### 2. Running the App
 - ##### Xcode Project:
