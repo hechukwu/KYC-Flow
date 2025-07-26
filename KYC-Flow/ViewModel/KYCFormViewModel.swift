@@ -49,9 +49,9 @@ class KYCFormViewModel: ObservableObject {
         // Simulate async fetch with delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             let profile = [
-                "first_name": "Jan",
-                "last_name": "Jansen",
-                "birth_date": "1985-07-20"
+                "first_name": "Henry",
+                "last_name": "Chukwu",
+                "birth_date": "1998-07-20"
             ]
             self.formData.merge(profile) { _, new in new }
             self.isLoadingUserProfile = false

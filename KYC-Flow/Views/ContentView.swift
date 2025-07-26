@@ -14,45 +14,48 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            Form {
-                Section(header: Text("Select Country")) {
-                    Picker("Country", selection: $viewModel.selectedCountryCode) {
-                        ForEach(viewModel.supportedCountries, id: \.0) { code, name in
-                            Text(name).tag(code)
+            ZStack {
+                Form {
+                    Section(header: Text("Select Country")) {
+                        Picker("Country", selection: $viewModel.selectedCountryCode) {
+                            ForEach(viewModel.supportedCountries, id: \.0) { code, name in
+                                Text(name).tag(code)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .onChange(of: viewModel.selectedCountryCode) {
+                            viewModel.loadConfig()
                         }
                     }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .onChange(of: viewModel.selectedCountryCode) { _ in
-                        viewModel.loadConfig()
+                    
+                    if let config = viewModel.config, !viewModel.isLoadingUserProfile {
+                        Section(header: Text("\(config.country) KYC Form")) {
+                            ForEach(config.fields) { field in
+                                DynamicFieldView(
+                                    field: field,
+                                    value: Binding(
+                                        get: { viewModel.formData[field.id, default: ""] },
+                                        set: { viewModel.formData[field.id] = $0 }
+                                    ),
+                                    error: viewModel.validationErrors[field.id],
+                                    isReadOnly: viewModel.isReadOnly(field: field)
+                                )
+                            }
+                        }
+                    }
+                    
+                    Section {
+                        Button("Submit") {
+                            if let json = viewModel.submit() {
+                                jsonOutput = json
+                                showJSONSummary = true
+                            }
+                        }
+                        .disabled(viewModel.isLoadingUserProfile)
                     }
                 }
                 if viewModel.isLoadingUserProfile {
-                    Section {
-                        Text("Loading user profile...")
-                    }
-                } else if let config = viewModel.config {
-                    Section(header: Text("\(config.country) KYC Form")) {
-                        ForEach(config.fields) { field in
-                            DynamicFieldView(
-                                field: field,
-                                value: Binding(
-                                    get: { viewModel.formData[field.id, default: ""] },
-                                    set: { viewModel.formData[field.id] = $0 }
-                                ),
-                                error: viewModel.validationErrors[field.id],
-                                isReadOnly: viewModel.isReadOnly(field: field)
-                            )
-                        }
-                    }
-                }
-                Section {
-                    Button("Submit") {
-                        if let json = viewModel.submit() {
-                            jsonOutput = json
-                            showJSONSummary = true
-                        }
-                    }
-                    .disabled(viewModel.isLoadingUserProfile)
+                    LoadingOverlay()
                 }
             }
             .navigationTitle("KYC Form")
@@ -75,6 +78,7 @@ struct ContentView: View {
         }
     }
 }
+
 
 #Preview {
     ContentView()
